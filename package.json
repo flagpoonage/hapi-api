@@ -1,0 +1,30 @@
+{
+  "name": "hapi-api",
+  "version": "1.0.0",
+  "description": "Base project for API's written with Hapi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flagpoonage/hapi-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flagpoonage/hapi-api/issues"
+  },
+  "homepage": "https://github.com/flagpoonage/hapi-api#readme",
+  "dependencies": {
+    "baboom": "^0.1.5",
+    "bcrpyt": "^2.0.0",
+    "boom": "^7.2.0",
+    "hapi": "^17.4.0",
+    "hoek": "^5.0.3",
+    "iron": "^5.0.4",
+    "joi": "^13.3.0",
+    "pg": "^7.4.3",
+    "scooter": "^5.0.0"
+  }
+}
