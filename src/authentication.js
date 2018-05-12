@@ -1,75 +1,127 @@
 const Boom = require('boom');
-const Bcrypt = require('bcrypt');
 const Hoek = require('hoek');
 const Joi = require('joi');
 const { Pool } = require('pg');
+const Baboom = require('baboom');
+const squel = require('squel');
+const CryptoJS = require('crypto-js');
 
 const internals = {};
 
-const database_schema = Joi.object().requiredKeys({
-  
-  host: Joi.string().required(),
-  port: Joi.number().max(65535).required(),
-  username: Joi.string.required(),
-  password: Joi.string.password(),
-  using: Joi.object().requiredKeys({
-    
-    name: Joi.string().required(),
-    table: Joi.string.required(),
-    username: Joi.string.required(),
-    password: Joi.string.required(),
-    credentials: Joi.array().items(Joi.string()).min(1).required()
+internals.implementation = (server, options) => {
 
-  }).required()
+  console.log('Options inbound', options);
 
-}).required();
-
-
-const connection_pool = new Pool();
-
-internals.implementation = async (server, options) => {
-
-  Hoek.assert(options, 'Missing token auth strategy options');
-  Hoek.assert(options.store || options.database, 'Missing database or store in token auth strategy');
-
-  if (options.database) {
-    options.database = await database_schema.validate(options.database); 
-    Hoek.assert(!store, 'You can not specify a store if you use a database connection');
-  }
-  else {
-    options.store = await Joi.array().items(Joi.object()).validate(options.store);
-  }
-
-  if (options.database) {
-    try {
-      await connection_pool.connect({
-        host: options.database.host
-      });
-    }
-    catch (exception) {
-      console.error('Error connecting to the authentication database');
-      throw new Error('Unable to connect to authentication database');
-    }
-  }
+  Hoek.assert(!!options, 'No options were provided to the token auth scheme');
+  Hoek.assert(options.connection_pool, 'No connection pool was provided');
+  Hoek.assert(options.encryption_key, 'No encryption key was provided');
 
   return {
+
     authenticate: async (request, h) => {
 
       const auth = request.headers.Authorization;
 
+      // Check that the authorization header was provided.
       if (!auth) {
-        return Boom.unauthorized()
+        throw Baboom.unauthorized({
+          message: 'No access token was provided'
+        });
       }
-      
+
+      const parts = auth.split(' ');
+
+      // Validate that the authorization header is in the correct format: Bearer {token}
+      if (parts[0] !== 'Bearer' || parts.length !== 2) {
+        throw Baboom.unauthorized({
+          message: 'Bad HTTP authentication header format',
+          token: auth
+        });
+      }
+
+      const cred_enc = Buffer.from(parts[1], 'base64');
+
+      let cred_parts;
+
+      // Decrypt the access token
+      try {
+        cred_parts = CryptoJS.AES.decrypt(cred_enc, options.encryption_key);
+      }
+      catch (exception) {
+        throw Baboom.unauthorized({
+          message: 'Invalid access token provided',
+          token: auth
+        });
+      }
+
+      // Split decrypted token, to time and token: {time} {token}
+      let [time, token] = cred_parts.split(' ');
+
+      time = Number(time);
+
+      // Validate that time is a correct value.
+      if (isNaN(time)) {
+        throw Baboom.unauthorized({
+          message: 'Token usage time could not be calculated correctly',
+          token: token,
+          time: time
+        });
+      }
+
+      const current_time = new Date().getTime();
+
+      // Check whether the generated token time was within the minute. This prevents replays
+      if (current_time > time + 60000 || current_time < time) {
+        throw Baboom.unauthorized({
+          message: 'Token usage time has already expired, or is set in the future',
+          current_time: current_time,
+          time: time,
+          token: token
+        });
+      }
+
+      let query_results = null;
+
+      // Fetch the token and account details from the database
+      try {
+        query_results = await connection_pool.query(
+          squel.select()
+            .from('tokens', 't')
+            .from('users', 'u')
+            .where('t.id = ?', token)
+            .where('u.id = t.user_id')
+        );
+      }
+      catch (ex) {
+        throw Baboom.internal(ex);
+      }
+
+      // Check that the token exists.
+      if (!query_results[0]) {
+        throw Baboom.unauthorized({
+          message: 'Invalid access token',
+          token: token
+        });
+      }
+
+      let expire_time = query_results[0].access_expiry.getTime();
+
+      // Check that the token is not expired.
+      if (current_time >= expire_time) {
+        throw Baboom.unauthorized({
+          message: 'Access token expired',
+          token: token,
+          expired_at: query_results[0].access_expiry
+        });
+      }
+
+      return h.authenticated({ credentials: query_results });
     }
   }
 
 
 };
-
-exports.plugins = {
-  register: server => {
-    server.auth.scheme('token', internals.implementation);
-    server.auth.default('token');
-  }
-};
+exports.name = "Database Token Auth";
+exports.register = server => {
+  server.auth.scheme('token', internals.implementation);
+}

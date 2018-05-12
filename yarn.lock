@@ -20,8 +20,8 @@ b64@4.x.x:
   resolved "https://registry.yarnpkg.com/b64/-/b64-4.0.0.tgz#c37f587f0a383c7019e821120e8c3f58f0d22772"
 
 baboom@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/baboom/-/baboom-0.1.5.tgz#5ff93a39e81f74c3ad8b240e8f6be174d264f327"
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/baboom/-/baboom-0.1.7.tgz#5d42732b78c40fd65c8a8e21f8af9c2dd1e5b681"
 
 bcrpyt@^2.0.0:
   version "2.0.0"
@@ -83,6 +83,10 @@ cryptiles@4.x.x:
   resolved "https://registry.yarnpkg.com/cryptiles/-/cryptiles-4.1.1.tgz#169256b9df9fe3c73f8085c99e30b32247d4ab46"
   dependencies:
     boom "7.x.x"
+
+crypto-js@^3.1.9-1:
+  version "3.1.9-1"
+  resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-3.1.9-1.tgz#fda19e761fc077e01ffbfdc6e9fdfc59e8806cd8"
 
 hapi@^17.4.0:
   version "17.4.0"
@@ -278,6 +282,10 @@ split@^1.0.0:
   resolved "https://registry.yarnpkg.com/split/-/split-1.0.1.tgz#605bd9be303aa59fb35f9229fbea0ddec9ea07d9"
   dependencies:
     through "2"
+
+squel@^5.12.1:
+  version "5.12.1"
+  resolved "https://registry.yarnpkg.com/squel/-/squel-5.12.1.tgz#ab8fd473b6e28464004918caecedecdb08f7e3ee"
 
 statehood@6.x.x:
   version "6.0.6"
