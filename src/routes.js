@@ -1,3 +1,6 @@
+const AuthController = require('./controllers/auth');
+const UsersController = require('./controllers/users');
+
 module.exports = [
   {
     method: 'GET',
@@ -20,4 +23,7 @@ module.exports = [
       };
     }
   }
-]
+].concat(
+  AuthController.getRoutes(),
+  UsersController.getRoutes()
+);

@@ -19,7 +19,7 @@ b64@4.x.x:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/b64/-/b64-4.0.0.tgz#c37f587f0a383c7019e821120e8c3f58f0d22772"
 
-baboom@^0.1.5:
+baboom@^0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/baboom/-/baboom-0.1.7.tgz#5d42732b78c40fd65c8a8e21f8af9c2dd1e5b681"
 
@@ -334,6 +334,10 @@ useragent@2.x.x:
   dependencies:
     lru-cache "4.1.x"
     tmp "0.0.x"
+
+uuid@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
 
 vise@3.x.x:
   version "3.0.0"
