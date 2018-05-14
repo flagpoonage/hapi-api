@@ -1,7 +1,4 @@
-const Boom = require('boom');
 const Hoek = require('hoek');
-const Joi = require('joi');
-const { Pool } = require('pg');
 const Baboom = require('baboom');
 const squel = require('squel');
 const CryptoJS = require('crypto-js');
@@ -9,8 +6,6 @@ const CryptoJS = require('crypto-js');
 const internals = {};
 
 internals.implementation = (server, options) => {
-
-  console.log('Options inbound', options);
 
   Hoek.assert(!!options, 'No options were provided to the token auth scheme');
   Hoek.assert(options.connection_pool, 'No connection pool was provided');
@@ -20,7 +15,7 @@ internals.implementation = (server, options) => {
 
     authenticate: async (request, h) => {
 
-      const auth = request.headers.Authorization;
+      const auth = request.headers.authorization;
 
       // Check that the authorization header was provided.
       if (!auth) {
@@ -45,7 +40,7 @@ internals.implementation = (server, options) => {
 
       // Decrypt the access token
       try {
-        cred_parts = CryptoJS.AES.decrypt(cred_enc, options.encryption_key);
+        cred_parts = CryptoJS.AES.decrypt(cred_enc, options.encryption_key).toString();
       }
       catch (exception) {
         throw Baboom.unauthorized({
@@ -57,8 +52,6 @@ internals.implementation = (server, options) => {
       // Split decrypted token, to time and token: {time} {token}
       let [time, token] = cred_parts.split(' ');
 
-      time = Number(time);
-
       // Validate that time is a correct value.
       if (isNaN(time)) {
         throw Baboom.unauthorized({
@@ -67,6 +60,8 @@ internals.implementation = (server, options) => {
           time: time
         });
       }
+
+      time = Number(time);
 
       const current_time = new Date().getTime();
 
@@ -84,7 +79,7 @@ internals.implementation = (server, options) => {
 
       // Fetch the token and account details from the database
       try {
-        query_results = await connection_pool.query(
+        query_results = await options.connection_pool.query(
           squel.select()
             .from('tokens', 't')
             .from('users', 'u')
@@ -117,11 +112,10 @@ internals.implementation = (server, options) => {
 
       return h.authenticated({ credentials: query_results });
     }
-  }
-
-
+  };
 };
+
 exports.name = "Database Token Auth";
 exports.register = server => {
   server.auth.scheme('token', internals.implementation);
-}
+};

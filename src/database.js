@@ -3,4 +3,4 @@ const config = require('../config');
 
 const pool = new Pool(config.database);
 
-module.exports = pool;''
+module.exports = pool;

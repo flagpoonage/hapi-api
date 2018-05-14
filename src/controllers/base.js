@@ -10,10 +10,12 @@ class BaseController {
     if (!auth_required) {
       route.options = {
         auth: false
-      }
-    };
+      };
+    }
 
     return route;
   }
 
 }
+
+module.exports = BaseController;

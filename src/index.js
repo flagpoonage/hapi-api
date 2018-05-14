@@ -41,8 +41,6 @@ async function start () {
   try {
     await server.register(require('./authentication'));
 
-    console.log('Connection pool', dbpool.constructor === Pool);
-
     server.auth.strategy('dbtoken', 'token', {
       connection_pool: dbpool,
       encryption_key: 'secret key'

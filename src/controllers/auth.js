@@ -1,6 +1,6 @@
 const BaseController = require('./base');
 const db = require('../database');
-const squel = require('../squel');
+const squel = require('squel');
 const Baboom = require('baboom');
 const bcrypt = require('bcrypt');
 const uuid = require('uuid/v4');
@@ -87,6 +87,6 @@ class AuthController extends BaseController {
     throw Baboom.notImplemented('The logout method has not been implemented!');
   }
 
-};
+}
 
 module.exports = new AuthController();
